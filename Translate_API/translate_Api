@@ -1,0 +1,32 @@
+from flask import Flask, request, jsonify
+from flask_ngrok import run_with_ngrok
+from transformers import MBartForConditionalGeneration, MBart50TokenizerFast
+
+# telecharger le modele LM Mbart de facebook pour la traduction 
+model = MBartForConditionalGeneration.from_pretrained("facebook/mbart-large-50-many-to-many-mmt")
+tokenizer = MBart50TokenizerFast.from_pretrained("facebook/mbart-large-50-many-to-many-mmt")
+
+app = Flask(__name__)
+run_with_ngrok(app)  
+
+# Fonction diyal l traduction 
+def translate(text, source_lang, target_lang):
+    encoded = tokenizer(text, return_tensors="pt")
+    generated_tokens = model.generate(**encoded, forced_bos_token_id=tokenizer.lang_code_to_id[target_lang])
+    return tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
+
+@app.route('/translate', methods=['POST'])
+def translate_text():
+    data = request.get_json()
+    text = data.get("text")
+    source_lang = data.get("source_lang")
+    target_lang = data.get("target_lang")
+    
+    if not text or not source_lang or not target_lang:
+        return jsonify({"error": "Please provide text, source_lang, and target_lang"}), 400
+
+    translated_text = translate(text, source_lang, target_lang)
+    return jsonify({"translated_text": translated_text})
+
+if __name__ == '__main__':
+    app.run()

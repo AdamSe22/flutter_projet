@@ -1,239 +1,167 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_animate/flutter_animate.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const TranslationApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TranslationApp extends StatelessWidget {
+  const TranslationApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Traducteur',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-        textTheme: GoogleFonts.poppinsTextTheme(),
-      ),
-      home: const TranslatorPage(),
+      debugShowCheckedModeBanner: false,
+      home: const TranslatorHome(),
     );
   }
 }
 
-class TranslatorPage extends StatefulWidget {
-  const TranslatorPage({super.key});
-
-  @override
-  State<TranslatorPage> createState() => _TranslatorPageState();
-}
-
-class _TranslatorPageState extends State<TranslatorPage> {
-  final TextEditingController _sourceController = TextEditingController();
-  final TextEditingController _targetController = TextEditingController();
-  bool _isLoading = false;
-  String _sourceLang = 'fr_XX';
-  String _targetLang = 'en_XX';
-
-  final Map<String, String> _languages = {
-    'ar_AR': 'Arabic',
-    'cs_CZ': 'Czech',
-    'de_DE': 'German',
-    'en_XX': 'English',
-    'es_XX': 'Spanish',
-    'et_EE': 'Estonian',
-    'fi_FI': 'Finnish',
-    'fr_XX': 'French',
-    'gu_IN': 'Gujarati',
-    'hi_IN': 'Hindi',
-    'it_IT': 'Italian',
-    'ja_XX': 'Japanese',
-    'kk_KZ': 'Kazakh',
-    'ko_KR': 'Korean',
-    'lt_LT': 'Lithuanian',
-    'lv_LV': 'Latvian',
-    'my_MM': 'Burmese',
-    'ne_NP': 'Nepali',
-    'nl_XX': 'Dutch',
-    'ro_RO': 'Romanian',
-    'ru_RU': 'Russian',
-    'si_LK': 'Sinhala',
-    'tr_TR': 'Turkish',
-    'vi_VN': 'Vietnamese',
-    'zh_CN': 'Chinese',
-    'af_ZA': 'Afrikaans',
-    'az_AZ': 'Azerbaijani',
-    'bn_IN': 'Bengali',
-    'fa_IR': 'Persian',
-    'he_IL': 'Hebrew',
-    'hr_HR': 'Croatian',
-    'id_ID': 'Indonesian',
-    'ka_GE': 'Georgian',
-    'km_KH': 'Khmer',
-    'mk_MK': 'Macedonian',
-    'ml_IN': 'Malayalam',
-    'mn_MN': 'Mongolian',
-    'mr_IN': 'Marathi',
-    'pl_PL': 'Polish',
-    'ps_AF': 'Pashto',
-    'pt_XX': 'Portuguese',
-    'sv_SE': 'Swedish',
-    'sw_KE': 'Swahili',
-    'ta_IN': 'Tamil',
-    'te_IN': 'Telugu',
-    'th_TH': 'Thai',
-    'tl_XX': 'Tagalog',
-    'uk_UA': 'Ukrainian',
-    'ur_PK': 'Urdu',
-    'xh_ZA': 'Xhosa',
-    'gl_ES': 'Galician',
-    'sl_SI': 'Slovene',
-  };
-  Future<void> _translate() async {
-    if (_sourceController.text.isEmpty) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      final response = await http.post(
-        Uri.parse('http://localhost:5000/translate'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'text': _sourceController.text,
-          'source_lang': _sourceLang,
-          'target_lang': _targetLang,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          _targetController.text = data['translated_text'];
-          _isLoading = false;
-        });
-      } else {
-        throw Exception('Erreur de traduction');
-      }
-    } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
-      }
-    }
-  }
+class TranslatorHome extends StatelessWidget {
+  const TranslatorHome({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Traducteur'),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      backgroundColor: const Color(0xFFF2F4F7),
+      body: SingleChildScrollView(
         child: Column(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButton<String>(
-                    value: _sourceLang,
-                    isExpanded: true,
-                    items: _languages.entries.map((entry) {
-                      return DropdownMenuItem(
-                        value: entry.key,
-                        child: Text(entry.value),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() => _sourceLang = value!);
-                    },
+            // Header Section
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF3C8CE7), Color(0xFF00EAFF)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
+              child: const Column(
+                children: [
+                  Text(
+                    "Language Translator",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                IconButton(
-                  icon: const Icon(Icons.swap_horiz),
-                  onPressed: () {
-                    setState(() {
-                      final temp = _sourceLang;
-                      _sourceLang = _targetLang;
-                      _targetLang = temp;
-                      final tempText = _sourceController.text;
-                      _sourceController.text = _targetController.text;
-                      _targetController.text = tempText;
-                    });
-                  },
-                ).animate().scale(duration: const Duration(milliseconds: 200)),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: DropdownButton<String>(
-                    value: _targetLang,
-                    isExpanded: true,
-                    items: _languages.entries.map((entry) {
-                      return DropdownMenuItem(
-                        value: entry.key,
-                        child: Text(entry.value),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() => _targetLang = value!);
-                    },
+                  SizedBox(height: 10),
+                  Text(
+                    "Break language barriers instantly",
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _sourceController,
-              maxLines: 5,
-              decoration: InputDecoration(
-                hintText: 'Entrez le texte à traduire',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _isLoading ? null : _translate,
-              icon: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.translate),
-              label: Text(_isLoading ? 'Traduction en cours...' : 'Traduire'),
-              style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+
+            const SizedBox(height: 20),
+
+            // Translator Section
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
-            )
-                .animate()
-                .scale(duration: const Duration(milliseconds: 200))
-                .then()
-                .shimmer(duration: const Duration(milliseconds: 800)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _targetController,
-              maxLines: 5,
-              readOnly: true,
-              decoration: InputDecoration(
-                hintText: 'Traduction',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
+              child: Column(
+                children: [
+                  // Language Selection
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _languageTile("From", "English"),
+                      const Icon(Icons.sync_alt, color: Colors.grey),
+                      _languageTile("To", "Spanish"),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Text Input Section
+                  const TextField(
+                    decoration: InputDecoration(
+                      hintText: "Enter text to translate...",
+                      border: InputBorder.none,
+                      prefixIcon: Icon(Icons.mic, color: Colors.lightBlue),
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Translate Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF9A7DFF),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                      ),
+                      onPressed: () {},
+                      child: const Text(
+                        "Translate",
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Recent Translations Section
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Recent Translations",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  _RecentTranslationTile(
+                    englishText: "Hello, how are you?",
+                    translatedText: "¡Hola, ¿cómo estás?",
+                  ),
+                ],
               ),
             ),
           ],
@@ -242,10 +170,65 @@ class _TranslatorPageState extends State<TranslatorPage> {
     );
   }
 
+  Widget _languageTile(String title, String language) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(color: Colors.grey, fontSize: 14),
+        ),
+        const SizedBox(height: 5),
+        Row(
+          children: [
+            const Icon(Icons.language, color: Colors.lightBlue),
+            const SizedBox(width: 5),
+            Text(
+              language,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _RecentTranslationTile extends StatelessWidget {
+  final String englishText;
+  final String translatedText;
+
+  const _RecentTranslationTile({
+    Key? key,
+    required this.englishText,
+    required this.translatedText,
+  }) : super(key: key);
+
   @override
-  void dispose() {
-    _sourceController.dispose();
-    _targetController.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          englishText,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          translatedText,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.blue,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
   }
 }

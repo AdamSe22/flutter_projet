@@ -1,125 +1,392 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      debugShowCheckedModeBanner: false,
+      home: TranslatorHome(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class TranslatorHome extends StatefulWidget {
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _TranslatorHomeState createState() => _TranslatorHomeState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _TranslatorHomeState extends State<TranslatorHome> {
+  final Map<String, String> _languages = {
+    'ar_AR': 'Arabic',
+    'cs_CZ': 'Czech',
+    'de_DE': 'German',
+    'en_XX': 'English',
+    'es_XX': 'Spanish',
+    'et_EE': 'Estonian',
+    'fi_FI': 'Finnish',
+    'fr_XX': 'French',
+    'gu_IN': 'Gujarati',
+    'hi_IN': 'Hindi',
+    'it_IT': 'Italian',
+    'ja_XX': 'Japanese',
+    'kk_KZ': 'Kazakh',
+    'ko_KR': 'Korean',
+    'lt_LT': 'Lithuanian',
+    'lv_LV': 'Latvian',
+    'my_MM': 'Burmese',
+    'ne_NP': 'Nepali',
+    'nl_XX': 'Dutch',
+    'ro_RO': 'Romanian',
+    'ru_RU': 'Russian',
+    'si_LK': 'Sinhala',
+    'tr_TR': 'Turkish',
+    'vi_VN': 'Vietnamese',
+    'zh_CN': 'Chinese',
+    'af_ZA': 'Afrikaans',
+    'az_AZ': 'Azerbaijani',
+    'bn_IN': 'Bengali',
+    'fa_IR': 'Persian',
+    'he_IL': 'Hebrew',
+    'hr_HR': 'Croatian',
+    'id_ID': 'Indonesian',
+    'ka_GE': 'Georgian',
+    'km_KH': 'Khmer',
+    'mk_MK': 'Macedonian',
+    'ml_IN': 'Malayalam',
+    'mn_MN': 'Mongolian',
+    'mr_IN': 'Marathi',
+    'pl_PL': 'Polish',
+    'ps_AF': 'Pashto',
+    'pt_XX': 'Portuguese',
+    'sv_SE': 'Swedish',
+    'sw_KE': 'Swahili',
+    'ta_IN': 'Tamil',
+    'te_IN': 'Telugu',
+    'th_TH': 'Thai',
+    'tl_XX': 'Tagalog',
+    'uk_UA': 'Ukrainian',
+    'ur_PK': 'Urdu',
+    'xh_ZA': 'Xhosa',
+    'gl_ES': 'Galician',
+    'sl_SI': 'Slovene',
+  };
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  String _selectedSourceLanguage = 'en_XX';
+  String _selectedTargetLanguage = 'es_XX';
+  bool _showNewTextField = false;
+
+  final TextEditingController _sourceTextController = TextEditingController();
+  final TextEditingController _targetTextController = TextEditingController();
+
+  Future<void> _translateText() async {
+    final response = await http.post(
+      Uri.parse('http://127.0.0.1:5000/translate'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'text': _sourceTextController.text,
+        'source_lang': _selectedSourceLanguage,
+        'target_lang': _selectedTargetLanguage,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      setState(() {
+        _targetTextController.text = data['translated_text'];
+        _showNewTextField = true;
+      });
+    } else {
+      throw Exception('Failed to translate text');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    // Trier les langues par ordre alphabétique
+    final sortedLanguages = _languages.entries.toList()
+      ..sort((a, b) => a.value.compareTo(b.value));
+
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      backgroundColor: const Color(0xFFF2F4F7),
+      body: SingleChildScrollView(
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+          children: [
+            // Header Section
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF3C8CE7), Color(0xFF00EAFF)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
+              child: const Column(
+                children: [
+                  Text(
+                    "Language Translator",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Break language barriers instantly",
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+
+            const SizedBox(height: 20),
+
+            // Translator Section
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Language Selection
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      DropdownButton<String>(
+                        value: _selectedSourceLanguage,
+                        items: sortedLanguages.map((entry) {
+                          return DropdownMenuItem<String>(
+                            value: entry.key,
+                            child: Text(entry.value),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedSourceLanguage = value!;
+                          });
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.sync_alt, color: Colors.blue),
+                        onPressed: () {
+                          setState(() {
+                            // Échanger les langues source et cible
+                            final tempLang = _selectedSourceLanguage;
+                            _selectedSourceLanguage = _selectedTargetLanguage;
+                            _selectedTargetLanguage = tempLang;
+
+                            // Échanger les textes source et cible
+                            final tempText = _sourceTextController.text;
+                            _sourceTextController.text = _targetTextController.text;
+                            _targetTextController.text = tempText;
+                          });
+                        },
+                      ),
+                      DropdownButton<String>(
+                        value: _selectedTargetLanguage,
+                        items: sortedLanguages.map((entry) {
+                          return DropdownMenuItem<String>(
+                            value: entry.key,
+                            child: Text(entry.value),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedTargetLanguage = value!;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Text Input Section
+                  TextField(
+                    controller: _sourceTextController,
+                    decoration: const InputDecoration(
+                      hintText: "Enter text to translate...",
+                      border: InputBorder.none,
+                      prefixIcon: Icon(Icons.mic, color: Colors.lightBlue),
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Translate Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF9A7DFF),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                      ),
+                      onPressed: _translateText,
+                      child: const Text(
+                        "Translate",
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // New Text Field
+                  if (_showNewTextField)
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.white, Colors.white],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                      ),
+                      child: TextField(
+                        controller: _targetTextController,
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          hintText: "hello im adam serghini",
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Recent Translations Section
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Recent Translations",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  _RecentTranslationTile(
+                    englishText: "Hello, how are you?",
+                    translatedText: "¡Hola, ¿cómo estás?",
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+  Widget _languageTile(String title, String language) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(color: Colors.grey, fontSize: 14),
+        ),
+        const SizedBox(height: 5),
+        Row(
+          children: [
+            const Icon(Icons.language, color: Colors.lightBlue),
+            const SizedBox(width: 5),
+            Text(
+              language,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+class _RecentTranslationTile extends StatelessWidget {
+  final String englishText;
+  final String translatedText;
+
+  const _RecentTranslationTile({
+    Key? key,
+    required this.englishText,
+    required this.translatedText,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          englishText,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          translatedText,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.blue,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }

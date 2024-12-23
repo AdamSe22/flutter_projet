@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from transformers import MBartForConditionalGeneration, MBart50TokenizerFast
 import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
@@ -32,9 +33,11 @@ pipe = pipeline(
 )
 
 app = Flask(__name__)
+CORS(app)
 
 # Fonction de traduction
 def translate(text, source_lang, target_lang):
+    tokenizer.src_lang = source_lang
     encoded = tokenizer(text, return_tensors="pt")
     generated_tokens = model.generate(**encoded, forced_bos_token_id=tokenizer.lang_code_to_id[target_lang])
     return tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]

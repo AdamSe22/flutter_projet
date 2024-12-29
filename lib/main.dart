@@ -88,7 +88,7 @@ class _TranslatorHomeState extends State<TranslatorHome> {
 
   Future<void> _translateText() async {
     final response = await http.post(
-      Uri.parse('http://127.0.0.1:5000/translate'),
+      Uri.parse('http://10.0.204.5:5000/translate'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'text': _sourceTextController.text,
@@ -110,7 +110,6 @@ class _TranslatorHomeState extends State<TranslatorHome> {
 
   @override
   Widget build(BuildContext context) {
-    // Trier les langues par ordre alphabétique
     final sortedLanguages = _languages.entries.toList()
       ..sort((a, b) => a.value.compareTo(b.value));
 
@@ -119,7 +118,6 @@ class _TranslatorHomeState extends State<TranslatorHome> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header Section
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 40),
@@ -134,19 +132,25 @@ class _TranslatorHomeState extends State<TranslatorHome> {
                   bottomRight: Radius.circular(30),
                 ),
               ),
-              child: const Column(
+              child: Column(
                 children: [
-                  Text(
-                    "Language Translator",
+                  Image.asset(
+                    'assets/images/Logo.png',
+                    height: 60,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Tarjama+",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Break language barriers instantly",
+                  const SizedBox(height: 10),
+                  const Text(
+                    "كسر الحواجز اللغوية",
                     style: TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
@@ -205,7 +209,8 @@ class _TranslatorHomeState extends State<TranslatorHome> {
 
                             // Échanger les textes source et cible
                             final tempText = _sourceTextController.text;
-                            _sourceTextController.text = _targetTextController.text;
+                            _sourceTextController.text =
+                                _targetTextController.text;
                             _targetTextController.text = tempText;
                           });
                         },
@@ -329,31 +334,32 @@ class _TranslatorHomeState extends State<TranslatorHome> {
     );
   }
 }
-  Widget _languageTile(String title, String language) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(color: Colors.grey, fontSize: 14),
-        ),
-        const SizedBox(height: 5),
-        Row(
-          children: [
-            const Icon(Icons.language, color: Colors.lightBlue),
-            const SizedBox(width: 5),
-            Text(
-              language,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+
+Widget _languageTile(String title, String language) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      Text(
+        title,
+        style: const TextStyle(color: Colors.grey, fontSize: 14),
+      ),
+      const SizedBox(height: 5),
+      Row(
+        children: [
+          const Icon(Icons.language, color: Colors.lightBlue),
+          const SizedBox(width: 5),
+          Text(
+            language,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
             ),
-          ],
-        ),
-      ],
-    );
-  }
+          ),
+        ],
+      ),
+    ],
+  );
+}
 
 class _RecentTranslationTile extends StatelessWidget {
   final String englishText;

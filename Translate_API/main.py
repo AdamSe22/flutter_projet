@@ -5,6 +5,16 @@ import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 from pydub import AudioSegment
 import numpy as np
+from pymongo import MongoClient,DESCENDING
+
+# Connect to MongoDB (without SSL)
+client = MongoClient('mongodb://localhost:27017/')
+
+# Select the database
+db = client['Translate']
+
+# Select the collection
+collection = db['Translate_Api']
 
 
 # Charger le modèle de traduction
@@ -49,8 +59,27 @@ def translate_text():
     source_lang = data.get("source_lang")
     target_lang = data.get("target_lang")
     translated_text = translate(text, source_lang, target_lang)
+    document = {
+        "source_lang": source_lang,
+        "target_lang": target_lang,
+        "text": text,
+        "translated_text": translated_text
+    }
+    collection.insert_one(document)
     return jsonify({"translated_text": translated_text})
 
+@app.route('/translations', methods=['GET'])
+def get_translations():
+    documents = collection.find().sort('_id', DESCENDING).limit(3)
+    translations = []
+    for doc in documents:
+        translations.append({
+            "source_lang": doc['source_lang'],
+            "target_lang": doc['target_lang'],
+            "text": doc['text'],
+            "translated_text": doc['translated_text']
+        })
+    return jsonify({"translations": translations})
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe_audio():

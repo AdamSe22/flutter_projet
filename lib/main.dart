@@ -86,6 +86,25 @@ class _TranslatorHomeState extends State<TranslatorHome> {
   final TextEditingController _sourceTextController = TextEditingController();
   final TextEditingController _targetTextController = TextEditingController();
 
+  Future<List<Map<String, String>>> _fetchRecentTranslations() async {
+    final response = await http.get(Uri.parse('http://127.0.0.1:5000/translations'));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final translations = data['translations'] as List<dynamic>;
+      return translations.map((translation) {
+        return {
+          'source_lang': translation['source_lang'] as String,
+          'target_lang': translation['target_lang'] as String,
+          'text': translation['text'] as String,
+          'translated_text': translation['translated_text'] as String,
+        };
+      }).toList();
+    } else {
+      throw Exception('Failed to load recent translations');
+    }
+  }
+
   Future<void> _translateText() async {
     final response = await http.post(
       Uri.parse('http://127.0.0.1:5000/translate'),
@@ -290,38 +309,55 @@ class _TranslatorHomeState extends State<TranslatorHome> {
             const SizedBox(height: 20),
 
             // Recent Translations Section
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Recent Translations",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+            FutureBuilder<List<Map<String, String>>>(
+              future: _fetchRecentTranslations(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Text('No recent translations found.');
+                } else {
+                  final recentTranslations = snapshot.data!;
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(height: 10),
-                  _RecentTranslationTile(
-                    englishText: "Hello, how are you?",
-                    translatedText: "¡Hola, ¿cómo estás?",
-                  ),
-                ],
-              ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Recent Translations",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        for (var translation in recentTranslations) ...[
+                          _RecentTranslationTile(
+                          englishText: translation['text']!,
+                          translatedText: translation['translated_text']!,
+                          ),
+                            const SizedBox(height: 10),
+                        ],
+                      ],
+                    ),
+                  );
+                }
+              },
             ),
           ],
         ),

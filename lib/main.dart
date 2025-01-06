@@ -153,26 +153,32 @@ class _TranslatorHomeState extends State<TranslatorHome> {
                   bottomRight: Radius.circular(30),
                 ),
               ),
-              child: const Column(
+              child: Column(
                 children: [
-                  Text(
-                    "Language Translator",
+                  Image.asset(
+                    'assets/images/Logo.png',
+                    height: 60,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Tarjama+",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Break language barriers instantly",
+                  const SizedBox(height: 10),
+                  const Text(
+                    "كسر الحواجز اللغوية",
                     style: TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
                     ),
                   ),
                 ],
-              ),
+              )
             ),
 
             const SizedBox(height: 20),
